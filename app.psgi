@@ -1,5 +1,10 @@
 #!/usr/bin/env perl
 
+# A stupid PSGI Perl application that serves up the Fibonacci
+# sequence on /fibonacci, and forwards everything else to Elm
+# reactor.  You'll need Plack and Plack::App::Proxy installed
+# to run this!
+
 use strict;
 use warnings;
 
