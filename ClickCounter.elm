@@ -8,5 +8,5 @@ update _ currentValue =
 
 main : Signal Element
 main =
-  Signal.map (\clicks -> leftAligned <| fromString <| toString t)
+  Signal.map (\clicks -> leftAligned <| fromString <| toString clicks)
     <| Signal.foldp update 0 Mouse.clicks
