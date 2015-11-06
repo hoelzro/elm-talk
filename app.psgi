@@ -31,7 +31,6 @@ sub fib_app {
 
     if($env->{'PATH_INFO'} =~ m{/(\d+)}) {
         my $param = $1;
-        #sleep 1;
         $answer = fib($param);
     }
 
