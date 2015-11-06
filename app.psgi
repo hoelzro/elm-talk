@@ -3,7 +3,8 @@
 # A stupid PSGI Perl application that serves up the Fibonacci
 # sequence on /fibonacci, and forwards everything else to Elm
 # reactor.  You'll need Plack and Plack::App::Proxy installed
-# to run this!
+# to run this, but you'll only need it for OneTimeRequest.elm
+# and RepeatedRequest.elm.
 
 use strict;
 use warnings;
