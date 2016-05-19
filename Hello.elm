@@ -1,6 +1,14 @@
-import Graphics.Element exposing (Element, leftAligned)
-import Text exposing (fromString)
+import Html exposing (Html, text)
+import Html.App as App
 
-main : Element
-main = leftAligned <| fromString "Hello, World!"
--- "leftAligned <| fromString s" is equivalent to leftAligned (fromString s)
+view : () -> Html a
+view _ = text "Hello, World!"
+
+update _ m = m
+
+main : Program Never
+main = App.beginnerProgram {
+    model = (),
+    view = view,
+    update = update
+  }
