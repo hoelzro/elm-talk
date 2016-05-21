@@ -1,28 +1,41 @@
+import Html exposing (Html, text)
+import Html.App as App
 import Http
-
-import Graphics.Element exposing (Element, leftAligned, show)
 import Mouse
-import Task exposing (Task, andThen)
+import Task
 
-clicksThusFar : Signal Int
-clicksThusFar = Signal.foldp (\_ count -> count + 1) 0 Mouse.clicks
+type alias Model = {
+    clicksThusFar : Int,
+    lastResponse : String
+  }
 
-fibMailbox : Signal.Mailbox String
-fibMailbox = Signal.mailbox ""
+type Message = Click | GoodResponse String | BadResponse Http.Error
 
-fibTask : Int -> Task Http.Error ()
-fibTask input =
-  let url      = "http://localhost:5000/fibonacci/" ++ (toString input)
-      httpTask = Http.getString url
-      sendTask = Signal.send fibMailbox.address
-  in httpTask `andThen` sendTask
+init : (Model, Cmd Message)
+init = ({clicksThusFar = 0, lastResponse = ""}, Cmd.none)
 
-port getFib : Signal (Task Http.Error ())
-port getFib = Signal.map fibTask clicksThusFar
+view : Model -> Html a
+view {lastResponse, clicksThusFar} = text <| toString (lastResponse, clicksThusFar)
 
-view : Int -> String -> Element
-view clicks fibResult =
-  show (clicks, fibResult)
+update : Message -> Model -> (Model, Cmd Message)
+update message {clicksThusFar, lastResponse} =
+  case message of
+    Click -> 
+      let
+        successor = {clicksThusFar = clicksThusFar + 1, lastResponse = lastResponse}
+        fetchTask = Http.getString ("http://localhost:5000/fibonacci/" ++ toString (clicksThusFar + 1))
+      in
+        (successor, Task.perform BadResponse GoodResponse fetchTask)
+    BadResponse _ -> ({clicksThusFar = clicksThusFar, lastResponse = lastResponse}, Cmd.none)
+    GoodResponse result -> ({clicksThusFar = clicksThusFar, lastResponse = result}, Cmd.none)
 
-main : Signal Element
-main = Signal.map2 view clicksThusFar fibMailbox.signal
+subscriptions : Model -> Sub Message
+subscriptions _ = Mouse.clicks <| always Click
+
+main : Program Never
+main = App.program {
+    init = init,
+    view = view,
+    update = update,
+    subscriptions = subscriptions
+  }
