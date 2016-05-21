@@ -1,17 +1,32 @@
-import Graphics.Element exposing (Element, leftAligned)
+import Html exposing (Html, text)
+import Html.App as App
 import Http
-import Task exposing (Task, andThen)
-import Text exposing (fromString)
+import Task
 
-fibMailbox : Signal.Mailbox String
-fibMailbox = Signal.mailbox ""
+type alias Model = String
+type Message = GoodResponse String | BadResponse Http.Error
 
-getFibTask : Task Http.Error ()
-getFibTask = Http.getString "http://localhost:5000/fibonacci/5" `andThen` (Signal.send fibMailbox.address)
+view : Model-> Html a
+view model = text model
 
-port getFib : Task Http.Error ()
-port getFib = getFibTask
+init : (Model, Cmd Message)
+init =
+    let fetchTask = Http.getString "http://localhost:5000/fibonacci/5"
+    in ("", Task.perform BadResponse GoodResponse fetchTask)
 
-main : Signal Element
-main =
-  Signal.map (leftAligned << fromString) fibMailbox.signal
+update : Message -> Model -> (Model, Cmd Message)
+update message model =
+  case message of
+    GoodResponse result -> (result, Cmd.none)
+    BadResponse _ -> (model, Cmd.none)
+
+subscriptions : Model -> Sub Message
+subscriptions _ = Sub.none
+
+main : Program Never
+main = App.program {
+    init = init,
+    view = view,
+    update = update,
+    subscriptions = subscriptions
+  }
