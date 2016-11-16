@@ -1,5 +1,4 @@
 import Html exposing (Html, text)
-import Html.App as App
 import Mouse
 
 type Message = Click
@@ -17,8 +16,8 @@ subscriptions _ = Mouse.clicks <| always Click
 view : Model -> Html Message
 view numClicks = text <| toString numClicks
 
-main : Program Never
-main = App.program {
+main : Program Never Model Message
+main = Html.program {
     init = init,
     update = update,
     subscriptions = subscriptions,

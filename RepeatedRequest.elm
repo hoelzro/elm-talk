@@ -1,39 +1,38 @@
 import Html exposing (Html, text)
-import Html.App as App
 import Http
 import Mouse
-import Task
 
-type alias Model = {
-    clicksThusFar : Int,
-    lastResponse : String
-  }
+type alias Model = (Int, Maybe Int)
+type Msg = HttpResult (Result Http.Error String) | Click
 
-type Message = Click | GoodResponse String | BadResponse Http.Error
+init : (Model, Cmd Msg)
+init = ((0, Nothing), Cmd.none)
 
-init : (Model, Cmd Message)
-init = ({clicksThusFar = 0, lastResponse = ""}, Cmd.none)
-
-view : Model -> Html a
-view {lastResponse, clicksThusFar} = text <| toString (lastResponse, clicksThusFar)
-
-update : Message -> Model -> (Model, Cmd Message)
-update message {clicksThusFar, lastResponse} =
-  case message of
-    Click -> 
-      let
-        successor = {clicksThusFar = clicksThusFar + 1, lastResponse = lastResponse}
-        fetchTask = Http.getString ("http://localhost:5000/fibonacci/" ++ toString (clicksThusFar + 1))
-      in
-        (successor, Task.perform BadResponse GoodResponse fetchTask)
-    BadResponse _ -> ({clicksThusFar = clicksThusFar, lastResponse = lastResponse}, Cmd.none)
-    GoodResponse result -> ({clicksThusFar = clicksThusFar, lastResponse = result}, Cmd.none)
-
-subscriptions : Model -> Sub Message
+subscriptions : Model -> Sub Msg
 subscriptions _ = Mouse.clicks <| always Click
 
-main : Program Never
-main = App.program {
+view : Model -> Html Msg
+view model = text <| toString model
+
+sendRequest : Int -> Cmd Msg
+sendRequest clicks =
+  let url = "http://localhost:5000/fibonacci/" ++ (toString clicks)
+      request = Http.getString url
+  in Http.send HttpResult request
+
+update : Msg -> Model -> (Model, Cmd Msg)
+update msg model =
+  let (clicks, fib) = model
+  in case msg of
+    Click -> ((clicks + 1, fib), sendRequest <| clicks + 1)
+    HttpResult (Ok result) ->
+      case String.toInt result of
+        Ok newFib -> ((clicks, Just newFib), Cmd.none)
+        Err _ -> (model, Cmd.none)
+    HttpResult (Err _) -> (model, Cmd.none)
+
+main : Program Never Model Msg
+main = Html.program {
     init = init,
     view = view,
     update = update,

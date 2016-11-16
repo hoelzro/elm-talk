@@ -1,5 +1,4 @@
 import Html exposing (Html, text)
-import Html.App as App
 import Time exposing (Time, every, second)
 
 type alias Model = Time
@@ -18,8 +17,8 @@ view : model -> Html a
 view t = text <| toString t
 -- "text <| toString t" is shorthand for "text (toString t)"
 
-main : Program Never
-main = App.program {
+main : Program Never Model Message
+main = Html.program {
     init = init,
     update = update,
     subscriptions = subscriptions,
